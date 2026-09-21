@@ -8,6 +8,8 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -15,6 +17,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
@@ -28,6 +31,10 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
+import frc.robot.subsystems.turret.Turret;
+import frc.robot.subsystems.turret.TurretIO;
+import frc.robot.subsystems.turret.TurretIOSim;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -40,6 +47,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Intake intake;
+  private final Turret turret;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -63,6 +71,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         intake = new Intake(new IntakeIOTalonFX());
+        turret = new Turret(new TurretIO() {});
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -92,6 +101,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
         intake = new Intake(new IntakeIOSim());
+        turret = new Turret(new TurretIOSim());
         break;
 
       default:
@@ -104,6 +114,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         intake = new Intake(new IntakeIO() {});
+        turret = new Turret(new TurretIO() {});
         break;
     }
 
@@ -175,6 +186,35 @@ public class RobotContainer {
     gunnerController.leftBumper().whileTrue(intake.moveForwards());
 
     gunnerController.rightBumper().whileTrue(intake.moveBackwards());
+
+    // //////////////// TURRET COMMANDS /////////////////////////////////
+    gunnerController
+      .x()
+      .onTrue(
+        turret.setTurretForwards()
+      );
+
+    Trigger leftJoystickMoved = new Trigger(
+      () ->
+        Math.abs(gunnerController.getLeftX()) > 0.2 || Math.abs(gunnerController.getLeftY()) > 0.2
+    );
+
+    leftJoystickMoved.whileTrue(
+      turret.setTurretSetpointRadians(
+        () ->
+          -Math.atan2(
+            MathUtil.applyDeadband(
+              gunnerController.getLeftY(), 
+              0.2
+            ), // applyDeadband ignores inputs below threshold
+            MathUtil.applyDeadband(
+              gunnerController.getLeftX(), 
+              0.2
+            )
+          )
+      )
+    );
+
   }
 
   /**
