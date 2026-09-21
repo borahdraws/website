@@ -11,19 +11,14 @@ import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 /** Add your docs here. */
 public class TurretIOSim implements TurretIO {
   DCMotorSim turretSimMotor =
-    new DCMotorSim(
-      LinearSystemId.createDCMotorSystem(
-        DCMotor.getKrakenX60(1), 
-        0.005, 
-        3.0
-      ),
-      DCMotor.getKrakenX60(1)
-    );
+      new DCMotorSim(
+          LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60(1), 0.005, 3.0),
+          DCMotor.getKrakenX60(1));
 
   @Override
   public void updateInputs(TurretIOInputs inputs) {
     turretSimMotor.update(0.02);
-    
+
     inputs.turretAngleRadians = turretSimMotor.getAngularPositionRad();
     inputs.turretAppliedVoltage = turretSimMotor.getInputVoltage();
   }

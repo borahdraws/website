@@ -4,18 +4,18 @@
 
 package frc.robot.subsystems.intake;
 
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.controls.VoltageOut;
-
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Amps;
+
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 /** Add your docs here. */
 public class IntakeIOTalonFX implements IntakeIO {
 
   private final TalonFX intakeTalon;
-  private final VoltageOut request; 
+  private final VoltageOut request;
 
   public IntakeIOTalonFX() {
     intakeTalon = new TalonFX(5);
@@ -24,11 +24,12 @@ public class IntakeIOTalonFX implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-    inputs.intakePositionRadians = intakeTalon.getPosition().getValue().in(Radians); 
-    inputs.intakeVelocityRadiansPerSeconds = intakeTalon.getVelocity().getValue().in(RadiansPerSecond);
+    inputs.intakePositionRadians = intakeTalon.getPosition().getValue().in(Radians);
+    inputs.intakeVelocityRadiansPerSeconds =
+        intakeTalon.getVelocity().getValue().in(RadiansPerSecond);
     inputs.intakeAppliedVoltage = intakeTalon.getMotorVoltage().getValueAsDouble();
     inputs.intakeCurrentAmperage = intakeTalon.getSupplyCurrent().getValue().in(Amps);
-}
+  }
 
   @Override
   public void setIntakeVoltage(double voltage) {

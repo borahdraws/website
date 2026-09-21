@@ -11,11 +11,11 @@ public class IntakeIOSim implements IntakeIO {
 
   @Override
   public void updateInputs(IntakeIOInputs inputs) {
-  inputs.intakeAppliedVoltage = simVoltage;
-}
+    inputs.intakeAppliedVoltage = simVoltage;
+  }
 
   @Override
   public void setIntakeVoltage(double voltage) {
-		this.simVoltage = voltage;
-}
+    this.simVoltage = voltage;
+  }
 }

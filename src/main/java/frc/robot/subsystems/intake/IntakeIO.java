@@ -8,7 +8,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 /** Add your docs here. */
 public interface IntakeIO {
-    @AutoLog
+  @AutoLog
   public static class IntakeIOInputs {
 
     public double intakePositionRadians = 0.0;
@@ -21,4 +21,3 @@ public interface IntakeIO {
 
   public default void setIntakeVoltage(double voltage) {}
 }
-

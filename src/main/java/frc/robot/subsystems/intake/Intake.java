@@ -16,37 +16,37 @@ public class Intake extends SubsystemBase {
   public Intake(IntakeIO io) {
     this.io = io;
   }
- 
+
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Intake", inputs);
   }
 
-  public Command moveForwards() { 
+  public Command moveForwards() {
     return runEnd(
-    () -> {
- 	   io.setIntakeVoltage(12);
-    },
-    () -> {
- 	   io.setIntakeVoltage(0);
-    });
+        () -> {
+          io.setIntakeVoltage(12);
+        },
+        () -> {
+          io.setIntakeVoltage(0);
+        });
   }
 
-  public Command moveBackwards() { 
+  public Command moveBackwards() {
     return runEnd(
-    () -> {
- 	   io.setIntakeVoltage(-12);
-    },
-    () -> {
- 	   io.setIntakeVoltage(0);
-    });
+        () -> {
+          io.setIntakeVoltage(-12);
+        },
+        () -> {
+          io.setIntakeVoltage(0);
+        });
   }
 
-  public Command Stop() { 
+  public Command Stop() {
     return runOnce(
-    () -> {
-     	 io.setIntakeVoltage(0);
-    });
+        () -> {
+          io.setIntakeVoltage(0);
+        });
   }
 }
