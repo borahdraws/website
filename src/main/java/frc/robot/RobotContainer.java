@@ -7,6 +7,8 @@
 
 package frc.robot;
 
+import static frc.robot.Constants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.math.MathUtil;
@@ -71,7 +73,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         intake = new Intake(new IntakeIOTalonFX());
-        turret = new Turret(new TurretIO() {});
+        turret = new Turret(new TurretIO() {}); // *** placeholder
         // The ModuleIOTalonFXS implementation provides an example implementation for
         // TalonFXS controller connected to a CANdi with a PWM encoder. The
         // implementations
@@ -181,22 +183,34 @@ public class RobotContainer {
                     drive)
                 .ignoringDisable(true));
     // //////////////// INTAKE COMMANDS /////////////////////////////////
-    intake.setDefaultCommand(intake.Stop());
+    intake
+      .setDefaultCommand(
+        intake.Stop()
+      );
 
-    gunnerController.leftBumper().whileTrue(intake.moveForwards());
+    gunnerController
+      .button(EIGHT_BIT_DO_LEFT_BUMPER)
+      .whileTrue(
+        intake.moveForwards()
+      );
 
-    gunnerController.rightBumper().whileTrue(intake.moveBackwards());
+    gunnerController
+      .button(EIGHT_BIT_DO_LEFT_TRIGGER)
+      .whileTrue(
+        intake.moveBackwards()
+      );
 
     // //////////////// TURRET COMMANDS /////////////////////////////////
     gunnerController
-      .x()
+      .button(EIGHT_BIT_DO_X)
       .onTrue(
         turret.setTurretForwards()
       );
 
     Trigger leftJoystickMoved = new Trigger(
       () ->
-        Math.abs(gunnerController.getLeftX()) > 0.2 || Math.abs(gunnerController.getLeftY()) > 0.2
+        Math.abs(gunnerController.getLeftX()) > 0.2 || 
+          Math.abs(gunnerController.getLeftY()) > 0.2
     );
 
     leftJoystickMoved.whileTrue(
