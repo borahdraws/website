@@ -7,16 +7,28 @@
 
 package frc.robot.subsystems.vision;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.wpilibj.Filesystem;
 
 public class VisionConstants {
   // AprilTag layout
-  public static AprilTagFieldLayout aprilTagLayout =
-      AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
-
+  public static final AprilTagFieldLayout aprilTagLayout;
+  static {
+    AprilTagFieldLayout layout;
+    try {
+      layout = new AprilTagFieldLayout(
+          Path.of(Filesystem.getDeployDirectory().getPath(), "Bunnybots_2026.json"));
+    }
+    catch (IOException e) {
+      throw new RuntimeException("Failed to load json", e);
+    }
+    aprilTagLayout = layout;
+  }
   // Camera names, must match names configured on coprocessor
   public static String camera0Name = "camera_0";
   public static String camera1Name = "camera_1";
