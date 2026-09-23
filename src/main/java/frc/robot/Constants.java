@@ -39,6 +39,8 @@ public final class Constants {
   public static final int EIGHT_BIT_DO_RIGHT_TRIGGER = 10;
   public static final int EIGHT_BIT_DO_MINUS = 11;
   public static final int EIGHT_BIT_DO_PLUS = 12;
+  public static final int EIGHT_BIT_DO_LEFT_JOYSTICK_CLICK = 14;
+  public static final int EIGHT_BIT_DO_RIGHT_JOYSTICK_CLICK = 15;
   
 
 }
