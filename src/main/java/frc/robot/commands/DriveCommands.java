@@ -23,6 +23,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.vision.VisionConstants;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -40,6 +42,41 @@ public class DriveCommands {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+  private static final double ROBOT_HALF_LENGTH_METERS = Units.inchesToMeters(30.0/2.0);
+  private static final Rotation2d PANTRY_SNAP_DIRECTION = Rotation2d.fromDegrees(90);
+
+  private static final Translation2d PANTRY_LEFT_CORNER_BLUE = 
+    VisionConstants
+    .aprilTagLayout
+      .getTagPose(7)
+        .get() // make sure the ID is in the AprilTags layout file
+        .getTranslation() // converts TagPose to 3d coords
+        .toTranslation2d(); // converts 3D coords to 2d coords
+
+  private static final Translation2d PANTRY_RIGHT_CORNER_BLUE = 
+    VisionConstants
+    .aprilTagLayout
+      .getTagPose(6)
+        .get() // make sure the ID is in the AprilTags layout file
+        .getTranslation() // converts TagPose to 3d coords
+        .toTranslation2d(); // converts 3D coords to 2d coords
+
+  private static final Translation2d PANTRY_LEFT_CORNER_RED = 
+    VisionConstants
+    .aprilTagLayout
+      .getTagPose(5)
+        .get() // make sure the ID is in the AprilTags layout file
+        .getTranslation() // converts TagPose to 3d coords
+        .toTranslation2d(); // converts 3D coords to 2d coords
+
+  private static final Translation2d PANTRY_RIGHT_CORNER_RED = 
+    VisionConstants
+    .aprilTagLayout
+      .getTagPose(4)
+        .get() // make sure the ID is in the AprilTags layout file
+        .getTranslation() // converts TagPose to 3d coords
+        .toTranslation2d(); // converts 3D coords to 2d coords
 
   private DriveCommands() {}
 
