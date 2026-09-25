@@ -7,6 +7,13 @@
 
 package frc.robot.commands;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -24,13 +31,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.VisionConstants;
-
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
@@ -92,6 +92,29 @@ public class DriveCommands {
     return new Pose2d(Translation2d.kZero, linearDirection)
         .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
         .getTranslation();
+  }
+
+  
+  private static double distanceToPantry(
+      Translation2d robot, 
+      Translation2d leftAprilTag, 
+      Translation2d rightAprilTag) {
+    double distanceX = 
+      Math.max(
+        Math.max(
+
+          // if this is negative, the robot is somewhere right of the left AprilTag.
+          // if positive, the robot is to the left of the left AprilTag.
+          leftAprilTag.getX() - robot.getX(), 
+          0
+        ),
+
+        // if this is negative, the robot is somewhere left of the right AprilTag.
+        // if positive, the robot is to the right of the right AprilTag.
+        robot.getX() - rightAprilTag.getX() 
+      );
+    double distanceY = robot.getY() - leftAprilTag.getY();
+    return Math.hypot(distanceX, distanceY);
   }
 
   /**
