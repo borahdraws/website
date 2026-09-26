@@ -125,6 +125,20 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
+
+    ProfiledPIDController goalSnapPID =
+      new ProfiledPIDController(
+        8.0, 
+        0.0, 
+        ANGLE_KD,
+        new TrapezoidProfile.Constraints(
+          25.0, 
+          ANGLE_MAX_ACCELERATION
+        )
+      );
+      
+    goalSnapPID.enableContinuousInput(-Math.PI, Math.PI);
+
     return Commands.run(
         () -> {
           // Get linear velocity
