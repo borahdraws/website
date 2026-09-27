@@ -41,6 +41,7 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -144,35 +145,27 @@ public class RobotContainer {
     // Configure the button bindings
     configureButtonBindings();
   }
-
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
+  
   private void configureButtonBindings() {
     // //////////////// DRIVE COMMANDS /////////////////////////////////
-    // Default command, normal field-relative drive
     drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
+        DriveCommands.joystickDriveAtAngle(
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
-    // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> Rotation2d.kZero));
-
-    // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+            () -> {
+              Logger.recordOutput("Debug/RightStickX", controller.getRightX());
+              Logger.recordOutput("Debug/RightStickY", controller.getRightY());
+              Logger.recordOutput("Debug/RawAxis3", controller.getHID().getRawAxis(3));
+              Logger.recordOutput("Debug/RawAxis4", controller.getHID().getRawAxis(4));
+              if (Math.hypot(controller.getHID().getRawAxis(3), controller.getHID().getRawAxis(4)) > 0.5) {
+                return new Rotation2d(Math.atan2(controller.getHID().getRawAxis(3),controller.getHID().getRawAxis(4)));
+              } else {
+                return drive.getRotation();
+              }
+            }
+        )
+    );
 
     // Reset gyro to 0° when B button is pressed
     controller
@@ -184,6 +177,7 @@ public class RobotContainer {
                             new Pose2d(drive.getPose().getTranslation(), Rotation2d.kZero)),
                     drive)
                 .ignoringDisable(true));
+
     // //////////////// INTAKE COMMANDS /////////////////////////////////
     intake
       .setDefaultCommand(

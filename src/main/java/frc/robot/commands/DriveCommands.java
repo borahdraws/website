@@ -34,7 +34,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double ANGLE_KP = 5.0;
+  private static final double ANGLE_KP = 10.0;
   private static final double ANGLE_KD = 0.4;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
@@ -93,7 +93,6 @@ public class DriveCommands {
         .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
         .getTranslation();
   }
-
   
   private static double distanceToPantry(
       Translation2d robot, 
@@ -181,6 +180,7 @@ public class DriveCommands {
       DoubleSupplier ySupplier,
       Supplier<Rotation2d> rotationSupplier) {
 
+    
     // Create PID controller
     ProfiledPIDController angleController =
         new ProfiledPIDController(
@@ -189,6 +189,19 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+    ProfiledPIDController goalSnapPID =
+      new ProfiledPIDController(
+        8.0, 
+        0.0, 
+        ANGLE_KD,
+        new TrapezoidProfile.Constraints(
+          25.0, 
+          ANGLE_MAX_ACCELERATION
+        )
+      );
+      
+    goalSnapPID.enableContinuousInput(-Math.PI, Math.PI);
 
     // Construct command
     return Commands.run(
