@@ -29,18 +29,7 @@ public final class Constants {
     REPLAY
   }
 
-  public static final int EIGHT_BIT_DO_A = 1;
-  public static final int EIGHT_BIT_DO_B = 2;
-  public static final int EIGHT_BIT_DO_X = 4;
-  public static final int EIGHT_BIT_DO_Y = 5;
-  public static final int EIGHT_BIT_DO_LEFT_BUMPER = 7;
-  public static final int EIGHT_BIT_DO_RIGHT_BUMPER = 8;
-  public static final int EIGHT_BIT_DO_LEFT_TRIGGER = 9;
-  public static final int EIGHT_BIT_DO_RIGHT_TRIGGER = 10;
-  public static final int EIGHT_BIT_DO_MINUS = 11;
-  public static final int EIGHT_BIT_DO_PLUS = 12;
-  public static final int EIGHT_BIT_DO_LEFT_JOYSTICK_CLICK = 14;
-  public static final int EIGHT_BIT_DO_RIGHT_JOYSTICK_CLICK = 15;
+  
   
 
 }

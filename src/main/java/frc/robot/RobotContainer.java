@@ -15,8 +15,6 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -41,7 +39,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -58,9 +55,10 @@ public class RobotContainer {
   private final Vision vision;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
-  private final CommandXboxController gunnerController = new CommandXboxController(1);
-  
+  private final CommandXboxController driverController = new CommandXboxController(0);
+  private final EightBitDoController driverControllerEightBitDo = new EightBitDoController(1);
+  private final CommandXboxController gunnerController = new CommandXboxController(2);
+  private final EightBitDoController gunnerControllerEightBitDo = new EightBitDoController(3);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -152,15 +150,11 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDriveAtAngle(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
+            () -> -driverControllerEightBitDo.getLeftY(),
+            () -> -driverControllerEightBitDo.getLeftX(),
             () -> {
-              Logger.recordOutput("Debug/RightStickX", controller.getRightX());
-              Logger.recordOutput("Debug/RightStickY", controller.getRightY());
-              Logger.recordOutput("Debug/RawAxis3", controller.getHID().getRawAxis(3));
-              Logger.recordOutput("Debug/RawAxis4", controller.getHID().getRawAxis(4));
-              if (Math.hypot(controller.getHID().getRawAxis(3), controller.getHID().getRawAxis(4)) > 0.5) {
-                return new Rotation2d(Math.atan2(controller.getHID().getRawAxis(3),controller.getHID().getRawAxis(4)));
+              if (Math.hypot(driverControllerEightBitDo.getRightY(), driverControllerEightBitDo.getRightX()) > 0.5) {
+                return new Rotation2d(Math.atan2(-driverControllerEightBitDo.getRightY(), -driverControllerEightBitDo.getRightX()));
               } else {
                 return drive.getRotation();
               }
@@ -168,13 +162,13 @@ public class RobotContainer {
         )
     );
 
-    controller
-      .leftTrigger()
+    driverControllerEightBitDo
+      .a()
       .whileTrue(
         DriveCommands.pantryApproachDrive(drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller
+    driverController
         .b()
         .onTrue(
             Commands.runOnce(
@@ -190,29 +184,29 @@ public class RobotContainer {
         intake.Stop()
       );
 
-    gunnerController
-      .button(EIGHT_BIT_DO_LEFT_BUMPER)
+    gunnerControllerEightBitDo
+      .leftBumper()
       .whileTrue(
         intake.moveForwards()
       );
 
-    gunnerController
-      .button(EIGHT_BIT_DO_LEFT_TRIGGER)
+    gunnerControllerEightBitDo
+      .leftTrigger()
       .whileTrue(
         intake.moveBackwards()
       );
 
     // //////////////// TURRET COMMANDS /////////////////////////////////
-    gunnerController
-      .button(EIGHT_BIT_DO_X)
+    gunnerControllerEightBitDo
+      .x()
       .onTrue(
         turret.setTurretForwards()
       );
 
     Trigger leftJoystickMoved = new Trigger(
       () -> 
-        Math.abs(gunnerController.getLeftX()) > 0.2 || 
-          Math.abs(gunnerController.getLeftY()) > 0.2
+        Math.abs(gunnerControllerEightBitDo.getLeftX()) > 0.2 || 
+          Math.abs(gunnerControllerEightBitDo.getLeftY()) > 0.2
       
     );
 
@@ -221,11 +215,11 @@ public class RobotContainer {
         () ->
           -Math.atan2(
             MathUtil.applyDeadband(
-              gunnerController.getLeftY(), 
+              gunnerControllerEightBitDo.getLeftY(), 
               0.2
             ), // applyDeadband ignores inputs below threshold
             MathUtil.applyDeadband(
-              gunnerController.getLeftX(), 
+              gunnerControllerEightBitDo.getLeftX(), 
               0.2
             )
           )
