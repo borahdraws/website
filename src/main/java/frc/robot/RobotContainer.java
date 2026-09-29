@@ -15,6 +15,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -153,8 +155,14 @@ public class RobotContainer {
             () -> -driverControllerEightBitDo.getLeftY(),
             () -> -driverControllerEightBitDo.getLeftX(),
             () -> {
-              if (Math.hypot(driverControllerEightBitDo.getRightY(), driverControllerEightBitDo.getRightX()) > 0.5) {
-                return new Rotation2d(Math.atan2(-driverControllerEightBitDo.getRightY(), -driverControllerEightBitDo.getRightX()));
+            if (Math.hypot(driverControllerEightBitDo.getRightX(), driverControllerEightBitDo.getRightY()) > 0.5) {
+              boolean isFlipped =
+                DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+
+              return isFlipped
+                ? new Rotation2d(Math.atan2(driverControllerEightBitDo.getRightX(), driverControllerEightBitDo.getRightY()))
+                : new Rotation2d(Math.atan2(-driverControllerEightBitDo.getRightX(), -driverControllerEightBitDo.getRightY()));
               } else {
                 return drive.getRotation();
               }
@@ -205,8 +213,8 @@ public class RobotContainer {
 
     Trigger leftJoystickMoved = new Trigger(
       () -> 
-        Math.abs(gunnerControllerEightBitDo.getLeftX()) > 0.2 || 
-          Math.abs(gunnerControllerEightBitDo.getLeftY()) > 0.2
+        Math.abs(gunnerControllerEightBitDo.getLeftX()) > 0.2
+          || Math.abs(gunnerControllerEightBitDo.getLeftY()) > 0.2
       
     );
 
