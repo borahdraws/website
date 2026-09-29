@@ -34,6 +34,9 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
 import frc.robot.subsystems.intake.IntakeIOTalonFX;
+import frc.robot.subsystems.superstructure.Superstructure;
+import frc.robot.subsystems.superstructure.SuperstructureIO;
+import frc.robot.subsystems.superstructure.SuperstructureIOSim;
 import frc.robot.subsystems.turret.Turret;
 import frc.robot.subsystems.turret.TurretIO;
 import frc.robot.subsystems.turret.TurretIOSim;
@@ -55,6 +58,7 @@ public class RobotContainer {
   private final Intake intake;
   private final Turret turret;
   private final Vision vision;
+  private final Superstructure superstructure;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -83,6 +87,7 @@ public class RobotContainer {
               drive::addVisionMeasurement,
               new VisionIO() {}
           );
+        superstructure = new Superstructure(new SuperstructureIO() {});
         break;
 
       case SIM:
@@ -104,6 +109,7 @@ public class RobotContainer {
               drive::getPose
             )
           );
+        superstructure = new Superstructure(new SuperstructureIOSim());
         break;
 
       default:
@@ -121,6 +127,7 @@ public class RobotContainer {
               drive::addVisionMeasurement,
               new VisionIO() {}
           );
+        superstructure = new Superstructure(new SuperstructureIO() {});
         break;
     }
 
@@ -175,6 +182,27 @@ public class RobotContainer {
       .whileTrue(
         DriveCommands.pantryApproachDrive(drive));
 
+    driverControllerEightBitDo
+      .pov(0)
+      .whileTrue(
+        DriveCommands.joystickDriveAtAngle(
+          drive,
+          () -> 0.5,
+          () -> 0.0,
+          () -> drive.getRotation()
+        )
+      );
+
+    driverControllerEightBitDo
+      .pov(180)
+      .whileTrue(
+        DriveCommands.joystickDriveAtAngle(
+          drive,
+          () -> -0.5,
+          () -> 0.0,
+          () -> drive.getRotation()
+        )
+      );
     // Reset gyro to 0° when B button is pressed
     driverController
         .b()
@@ -211,14 +239,13 @@ public class RobotContainer {
         turret.setTurretForwards()
       );
 
-    Trigger leftJoystickMoved = new Trigger(
+    Trigger gunnerLeftJoystickMoved = new Trigger(
       () -> 
-        Math.abs(gunnerControllerEightBitDo.getLeftX()) > 0.2
-          || Math.abs(gunnerControllerEightBitDo.getLeftY()) > 0.2
-      
+        Math.abs(gunnerControllerEightBitDo.getLeftX()) > 0.5
+          || Math.abs(gunnerControllerEightBitDo.getLeftY()) > 0.5
     );
 
-    leftJoystickMoved.whileTrue(
+    gunnerLeftJoystickMoved.whileTrue(
       turret.setTurretSetpointRadians(
         () ->
           -Math.atan2(
@@ -233,7 +260,28 @@ public class RobotContainer {
           )
       )
     );
+    // ////////// Superstructure Commands
+    
+    driverControllerEightBitDo
+      .a()
+      .onTrue(
+        superstructure.superstructureHighestPosition());
 
+    driverControllerEightBitDo
+      .rightBumper()
+      .onTrue(
+        superstructure.superstructureLowestPosition());
+
+    Trigger driverLeftJoystickMoved = new Trigger(
+      () -> 
+        Math.abs(driverControllerEightBitDo.getLeftX()) > 0.98
+          || Math.abs(driverControllerEightBitDo.getLeftY()) > 0.98
+    );
+
+    driverLeftJoystickMoved
+      .onTrue(
+      superstructure.superstructureLowestPosition()
+    );
   }
 
   /**
