@@ -60,6 +60,7 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
   private final CommandXboxController gunnerController = new CommandXboxController(1);
+  
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -167,6 +168,11 @@ public class RobotContainer {
         )
     );
 
+    controller
+      .leftTrigger()
+      .whileTrue(
+        DriveCommands.pantryApproachDrive(drive));
+
     // Reset gyro to 0° when B button is pressed
     controller
         .b()
@@ -204,9 +210,10 @@ public class RobotContainer {
       );
 
     Trigger leftJoystickMoved = new Trigger(
-      () ->
+      () -> 
         Math.abs(gunnerController.getLeftX()) > 0.2 || 
           Math.abs(gunnerController.getLeftY()) > 0.2
+      
     );
 
     leftJoystickMoved.whileTrue(

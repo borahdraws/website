@@ -15,6 +15,7 @@ import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -45,6 +46,7 @@ public class DriveCommands {
 
   private static final double ROBOT_HALF_LENGTH_METERS = Units.inchesToMeters(30.0/2.0);
   private static final Rotation2d PANTRY_SNAP_DIRECTION = Rotation2d.fromDegrees(90);
+  private static final double PANTRY_STANDOFF_METERS = Units.feetToMeters(2.0);
 
   private static final Translation2d PANTRY_LEFT_CORNER_BLUE = 
     VisionConstants
@@ -77,6 +79,21 @@ public class DriveCommands {
         .get() // make sure the ID is in the AprilTags layout file
         .getTranslation() // converts TagPose to 3d coords
         .toTranslation2d(); // converts 3D coords to 2d coords
+  
+  private static Pose2d computePantryApproachPose(Drive drive, boolean isFlipped) {
+    Translation2d leftCorner = isFlipped ? PANTRY_LEFT_CORNER_RED : PANTRY_LEFT_CORNER_BLUE;
+    Translation2d rightCorner = isFlipped ? PANTRY_RIGHT_CORNER_RED : PANTRY_RIGHT_CORNER_BLUE;
+
+    double minX = Math.min(leftCorner.getX(), rightCorner.getX());
+    double maxX = Math.max(leftCorner.getX(), rightCorner.getX());
+    double wallY = leftCorner.getY();
+
+    double robotX = drive.getPose().getX();
+    double closestX = MathUtil.clamp(robotX, minX, maxX); // this is the key line — closest point, not midpoint
+    double approachY = wallY - ROBOT_HALF_LENGTH_METERS - PANTRY_STANDOFF_METERS; // stand this far off the wall, on the field side
+
+    return new Pose2d(new Translation2d(closestX, approachY), PANTRY_SNAP_DIRECTION);
+  }
 
   private DriveCommands() {}
 
@@ -93,28 +110,6 @@ public class DriveCommands {
         .transformBy(new Transform2d(linearMagnitude, 0.0, Rotation2d.kZero))
         .getTranslation();
   }
-  
-  private static double distanceToPantry(
-      Translation2d robot, 
-      Translation2d leftAprilTag, 
-      Translation2d rightAprilTag) {
-    double distanceX = 
-      Math.max(
-        Math.max(
-
-          // if this is negative, the robot is somewhere right of the left AprilTag.
-          // if positive, the robot is to the left of the left AprilTag.
-          leftAprilTag.getX() - robot.getX(), 
-          0
-        ),
-
-        // if this is negative, the robot is somewhere left of the right AprilTag.
-        // if positive, the robot is to the right of the right AprilTag.
-        robot.getX() - rightAprilTag.getX() 
-      );
-    double distanceY = robot.getY() - leftAprilTag.getY();
-    return Math.hypot(distanceX, distanceY);
-  }
 
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
@@ -124,20 +119,7 @@ public class DriveCommands {
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
-
-    ProfiledPIDController goalSnapPID =
-      new ProfiledPIDController(
-        8.0, 
-        0.0, 
-        ANGLE_KD,
-        new TrapezoidProfile.Constraints(
-          25.0, 
-          ANGLE_MAX_ACCELERATION
-        )
-      );
       
-    goalSnapPID.enableContinuousInput(-Math.PI, Math.PI);
-
     return Commands.run(
         () -> {
           // Get linear velocity
@@ -180,7 +162,6 @@ public class DriveCommands {
       DoubleSupplier ySupplier,
       Supplier<Rotation2d> rotationSupplier) {
 
-    
     // Create PID controller
     ProfiledPIDController angleController =
         new ProfiledPIDController(
@@ -189,19 +170,6 @@ public class DriveCommands {
             ANGLE_KD,
             new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
     angleController.enableContinuousInput(-Math.PI, Math.PI);
-
-    ProfiledPIDController goalSnapPID =
-      new ProfiledPIDController(
-        8.0, 
-        0.0, 
-        ANGLE_KD,
-        new TrapezoidProfile.Constraints(
-          25.0, 
-          ANGLE_MAX_ACCELERATION
-        )
-      );
-      
-    goalSnapPID.enableContinuousInput(-Math.PI, Math.PI);
 
     // Construct command
     return Commands.run(
@@ -238,9 +206,8 @@ public class DriveCommands {
   }
 
   /**
-   * Measures the velocity feedforward constants for the drive motors.
-   *
-   * <p>This command should only be used in voltage control mode.
+   * Measures the velocity feedforward constants for the drive motors. 
+   * This command should only be used in voltage control mode.
    */
   public static Command feedforwardCharacterization(Drive drive) {
     List<Double> velocitySamples = new LinkedList<>();
@@ -367,6 +334,65 @@ public class DriveCommands {
                               + formatter.format(Units.metersToInches(wheelRadius))
                               + " inches");
                     })));
+    
+  }
+
+  public static Command driveToPose(Drive drive, Pose2d targetPose) {
+    return new DriveToPoseCommand(drive, targetPose);
+  }
+
+  private static class DriveToPoseCommand extends Command {
+    private final Drive drive;
+    private final Pose2d targetPose;
+    private final PIDController xController = new PIDController(3.0, 0, 0);
+    private final PIDController yController = new PIDController(3.0, 0, 0);
+    private final PIDController thetaController = new PIDController(4.0, 0, 0);
+
+    DriveToPoseCommand(Drive drive, Pose2d targetPose) {
+      this.drive = drive;
+      this.targetPose = targetPose;
+      thetaController.enableContinuousInput(-Math.PI, Math.PI);
+      xController.setTolerance(0.03);
+      yController.setTolerance(0.03);
+      thetaController.setTolerance(Math.toRadians(2));
+      addRequirements(drive);
+    }
+
+    @Override
+    public void initialize() {
+      xController.reset();
+      yController.reset();
+      thetaController.reset();
+    }
+    
+    @Override
+    public void execute() {
+      Pose2d pose = drive.getPose();
+      double vx = xController.calculate(pose.getX(), targetPose.getX());
+      double vy = yController.calculate(pose.getY(), targetPose.getY());
+      double omega = thetaController.calculate(pose.getRotation().getRadians(), targetPose.getRotation().getRadians());
+      drive.runVelocity(ChassisSpeeds.fromFieldRelativeSpeeds(vx, vy, omega, pose.getRotation()));
+    }
+
+    @Override
+    public boolean isFinished() {
+      return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+      drive.stop();
+    }
+  }
+
+  public static Command pantryApproachDrive(Drive drive) {
+    return Commands.defer(
+      () -> {
+        boolean isFlipped =
+            DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+        return driveToPose(drive, computePantryApproachPose(drive, isFlipped));
+      },
+      java.util.Set.of(drive));
   }
 
   private static class WheelRadiusCharacterizationState {
