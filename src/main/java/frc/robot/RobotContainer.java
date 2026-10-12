@@ -61,7 +61,7 @@ public class RobotContainer {
   private final Intake intake;
   private final Turret turret;
   private final Vision vision;
-  // private final Superstructure superstructure;
+  private final Superstructure superstructure;
   private final Elevator elevator;
   
   // Controller
@@ -92,6 +92,7 @@ public class RobotContainer {
               new VisionIO() {}
           );
         elevator = new Elevator(new ElevatorIOTalonFX() {});
+        superstructure = new Superstructure(new SuperstructureIO() {});
         break;
 
       case SIM:
@@ -114,6 +115,7 @@ public class RobotContainer {
             )
           );
         elevator = new Elevator(new ElevatorIOSim());
+        superstructure = new Superstructure(new SuperstructureIOSim());
         break;
 
       default:
@@ -132,6 +134,7 @@ public class RobotContainer {
               new VisionIO() {}
           );
         elevator = new Elevator(new ElevatorIO() {});
+        superstructure = new Superstructure(new SuperstructureIO() {});
         break;
     }
 
@@ -275,6 +278,16 @@ public class RobotContainer {
       .b()
       .onTrue(
         elevator.elevatorLowestPosition());
+    
+    driverControllerEightBitDo
+      .a()
+      .onTrue(
+        superstructure.superstructureHighestPosition());
+
+    driverControllerEightBitDo
+      .b()
+      .onTrue(
+        superstructure.superstructureLowestPosition());
 
     Trigger driverLeftJoystickMoved = new Trigger(
       () -> 
@@ -285,6 +298,10 @@ public class RobotContainer {
     driverLeftJoystickMoved
       .onTrue(
       elevator.elevatorLowestPosition()
+    );
+    driverLeftJoystickMoved
+      .onTrue(
+      superstructure.superstructureLowestPosition()
     );
   }
 

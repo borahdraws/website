@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 
 /** Add your docs here. */
 public class ElevatorIOSim implements ElevatorIO {
-
   private double simElevatorAppliedVolts = 0.0;
 
   ElevatorSim elevatorSim =
@@ -36,6 +35,7 @@ public class ElevatorIOSim implements ElevatorIO {
     inputs.elevatorPositionMeters = elevatorSim.getPositionMeters();
     inputs.elevatorVelocityMetersPerSec = elevatorSim.getVelocityMetersPerSecond();
     inputs.elevatorAppliedVolts = simElevatorAppliedVolts;
+    
     // divided by number of motors (aka 2)
     inputs.elevatorLeaderCurrentAmps = elevatorSim.getCurrentDrawAmps() / 2.0;
     inputs.elevatorFollowerCurrentAmps = elevatorSim.getCurrentDrawAmps() / 2.0;
@@ -52,7 +52,7 @@ public class ElevatorIOSim implements ElevatorIO {
 
     elevatorSim.setInputVoltage(simElevatorAppliedVolts);
   }
-  
+
   @Override
   public void resetElevatorPosition(double meters) {
     elevatorSim.setState(meters, 0.0);

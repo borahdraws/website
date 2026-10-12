@@ -50,6 +50,7 @@ public class Robot extends LoggedRobot {
         break;
 
       case SIM:
+        Logger.addDataReceiver(new WPILOGWriter("simLogs"));
         // Running a physics simulator, log to NT
         Logger.addDataReceiver(new NT4Publisher());
         break;

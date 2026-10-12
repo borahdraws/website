@@ -6,29 +6,27 @@ package frc.robot.subsystems.elevator;
 
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj.util.Color8Bit;
-
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.math.geometry.Pose3d;
-
-import static frc.robot.subsystems.superstructure.SuperstructureConstants.*;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Elevator extends SubsystemBase {
   public enum Goal {
     LOWEST(
-      ELEVATOR_CARRIAGE_TARGET_HEIGHT_INITIAL
+      0.0
     ),
     HIGHEST(
-      ELEVATOR_CARRIAGE_HEIGHT_LEVEL_2_SHELF
+      Units.inchesToMeters(14.0)
     );
 
     final double elevatorCarriageTargetHeightMeters;
@@ -80,7 +78,7 @@ public class Elevator extends SubsystemBase {
     elevatorBaseRoot.append(
       new LoggedMechanismLigament2d(
         "Elevator Base",
-        ELEVATOR_BASE_LENGTH,
+        Units.inchesToMeters(24.0),
         90.0,
         6.0,
         new Color8Bit(Color.kRed)
@@ -98,14 +96,14 @@ public class Elevator extends SubsystemBase {
     elevatorCarriageRoot.append(
       new LoggedMechanismLigament2d(
         "Elevator Carriage",
-        ELEVATOR_CARRIAGE_LENGTH, 
+        Units.inchesToMeters(24.0), 
         90,
         3.0,
         new Color8Bit(Color.kOrange)
       )
     );
 
-  /** Creates a new Superstructure. */
+  /** Creates a new Elevator. */
   public Elevator(ElevatorIO io) {
     this.io = io;
 
@@ -141,7 +139,7 @@ public class Elevator extends SubsystemBase {
     this.goal = goal;
   }
 
-  public Goal getSuperstructureGoal(){
+  public Goal getElevatorGoal(){
     return goal;
   }
 
@@ -161,11 +159,11 @@ public class Elevator extends SubsystemBase {
 
   public Command elevatorHighestPosition() {
     return setElevatorGoalCommand(Goal.HIGHEST)
-      .withName("Superstructure Highest Position");
+      .withName("Elevator Highest Position");
   }
 
   public Command elevatorLowestPosition() {
     return setElevatorGoalCommand(Goal.LOWEST)
-      .withName("Superstructure Lowest Position");
+      .withName("Elevator Lowest Position");
   }
 }
