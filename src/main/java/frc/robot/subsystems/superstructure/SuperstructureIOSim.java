@@ -29,7 +29,8 @@ public class SuperstructureIOSim implements SuperstructureIO {
     );
 
   SingleJointedArmSim armSim =
-    new SingleJointedArmSim(DCMotor.getKrakenX60(1),
+    new SingleJointedArmSim(
+      DCMotor.getKrakenX60(1),
       25,
       SingleJointedArmSim.estimateMOI(
         Units.inchesToMeters(12),

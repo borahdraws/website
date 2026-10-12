@@ -7,7 +7,6 @@
 
 package frc.robot;
 
-import static frc.robot.Constants.*;
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
@@ -30,6 +29,10 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.elevator.Elevator;
+import frc.robot.subsystems.elevator.ElevatorIO;
+import frc.robot.subsystems.elevator.ElevatorIOSim;
+import frc.robot.subsystems.elevator.ElevatorIOTalonFX;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSim;
@@ -58,12 +61,13 @@ public class RobotContainer {
   private final Intake intake;
   private final Turret turret;
   private final Vision vision;
-  private final Superstructure superstructure;
-
+  // private final Superstructure superstructure;
+  private final Elevator elevator;
+  
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final EightBitDoController driverControllerEightBitDo = new EightBitDoController(1);
-  private final CommandXboxController gunnerController = new CommandXboxController(2);
+  // private final CommandXboxController gunnerController = new CommandXboxController(2);
   private final EightBitDoController gunnerControllerEightBitDo = new EightBitDoController(3);
 
   // Dashboard inputs
@@ -87,7 +91,7 @@ public class RobotContainer {
               drive::addVisionMeasurement,
               new VisionIO() {}
           );
-        superstructure = new Superstructure(new SuperstructureIO() {});
+        elevator = new Elevator(new ElevatorIOTalonFX() {});
         break;
 
       case SIM:
@@ -109,7 +113,7 @@ public class RobotContainer {
               drive::getPose
             )
           );
-        superstructure = new Superstructure(new SuperstructureIOSim());
+        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -127,7 +131,7 @@ public class RobotContainer {
               drive::addVisionMeasurement,
               new VisionIO() {}
           );
-        superstructure = new Superstructure(new SuperstructureIO() {});
+        elevator = new Elevator(new ElevatorIO() {});
         break;
     }
 
@@ -265,12 +269,12 @@ public class RobotContainer {
     driverControllerEightBitDo
       .a()
       .onTrue(
-        superstructure.superstructureHighestPosition());
+        elevator.elevatorHighestPosition());
 
     driverControllerEightBitDo
-      .rightBumper()
+      .b()
       .onTrue(
-        superstructure.superstructureLowestPosition());
+        elevator.elevatorLowestPosition());
 
     Trigger driverLeftJoystickMoved = new Trigger(
       () -> 
@@ -280,7 +284,7 @@ public class RobotContainer {
 
     driverLeftJoystickMoved
       .onTrue(
-      superstructure.superstructureLowestPosition()
+      elevator.elevatorLowestPosition()
     );
   }
 
